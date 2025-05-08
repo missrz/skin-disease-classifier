@@ -302,13 +302,16 @@
           method: 'POST',
           body: formData
         });
-        if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-        const json = await resp.json();
-
+        const data = await resp.json();
+        if (!resp.ok) {
+          // use any error detail from the response
+          const errMsg = data.detail || `Server returned ${resp.status}`;
+          throw new Error(errMsg);
+        }
         resultEl.innerHTML = `
-          <h3>Diagnosis: ${json.disease}</h3>
-          <p>Confidence: ${(json.confidence * 100).toFixed(1)}%</p>
-          <p>${json.message || ''}</p>
+          <h3>Diagnosis: ${data.disease}</h3>
+          <p>Confidence: ${(data.confidence * 100).toFixed(1)}%</p>
+          <p style="color:red;">${data.warning || ''}</p>
         `;
       } catch (err) {
         resultEl.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;

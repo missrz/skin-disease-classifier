@@ -348,6 +348,22 @@
 
       showSection('checker');
     }
+
+    document.getElementById('dob').addEventListener('change', function () {
+    const dob = new Date(this.value);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+
+    if (!isNaN(age)) {
+      document.getElementById('age').value = age;
+    } else {
+      document.getElementById('age').value = '';
+    }
+  });
   </script>
 
 </body>

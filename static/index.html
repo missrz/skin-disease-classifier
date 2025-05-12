@@ -98,7 +98,7 @@
     .card {
       background-color: rgba(255,255,255,0.95);
       color: #333;
-      max-width: 500px;
+      max-width: 600px;
       margin: auto;
       padding: 30px;
       border-radius: 15px;
@@ -123,6 +123,16 @@
       text-align: left;
       font-size: 1rem;
       color: #333;
+    }
+
+    #predictionsContainer {
+      display: none;
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    #thankYouContainer {
+      display: none;
     }
 
     .submit-btn {
@@ -160,9 +170,7 @@
   <!-- Page 2: Form -->
   <section class="section" id="formSection">
     <div class="form-container">
-      <h1 style="font-family: cursive; color: #9c27b0; background-color: #f3ccfa;">
-        Patient's Details
-      </h1>
+      <h1 style="font-family: cursive; color: #9c27b0; background-color: #f3ccfa;">Patient's Details</h1>
       <form id="patientForm">
         <div class="form-group">
           <label for="fullName"><b>Full Name:</b></label>
@@ -171,7 +179,7 @@
         <div class="form-group">
           <label><b>Gender:</b></label>
           <div style="display: flex; gap: 15px;">
-            <label><input type="radio" name="gender" value="Female"> Female</label>
+            <label><input type="radio" name="gender" value="Female" required> Female</label>
             <label><input type="radio" name="gender" value="Male"> Male</label>
             <label><input type="radio" name="gender" value="Other"> Other</label>
           </div>
@@ -179,17 +187,17 @@
 
         <div class="form-group">
           <label for="dob"><b>Date of Birth:</b></label>
-          <input type="date" id="dob" name="dob" min="1905-01-01" max="2030-12-31">
+          <input type="date" id="dob" name="dob" min="1905-01-01" max="2030-12-31" required>
         </div>
 
         <div class="form-group">
           <label for="age"><b>Age:</b></label>
-          <input type="number" id="age" name="age" min="0" max="120">
+          <input type="number" id="age" name="age" min="0" max="120" required>
         </div>
 
         <div class="form-group">
           <label for="bloodGroup"><b>Blood Group:</b></label>
-          <select id="bloodGroup" name="bloodGroup">
+          <select id="bloodGroup" name="bloodGroup" required>
             <option value="">Select</option>
             <option>A+</option><option>A-</option>
             <option>B+</option><option>B-</option>
@@ -200,22 +208,20 @@
 
         <div class="form-group">
           <label for="phone"><b>Phone Number:</b></label>
-          <input type="tel" id="phone" name="phone" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g, '')">
+          <input type="tel" id="phone" name="phone" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g, '')" required>
         </div>
 
         <div class="form-group">
           <label for="email"><b>Email Address:</b></label>
-          <input type="email" id="email" name="email">
+          <input type="email" id="email" name="email" required>
         </div>
 
         <div class="form-group">
           <label for="address"><b>Address:</b></label>
-          <textarea id="address" name="address"></textarea>
+          <textarea id="address" name="address" required></textarea>
         </div>
 
-        <button type="button" class="btn submit-btn" onclick="validateAndNext()">
-          Next: Upload Image
-        </button>
+        <button type="button" class="btn submit-btn" onclick="validateAndNext()">Next: Upload Image</button>
       </form>
     </div>
   </section>
@@ -231,13 +237,25 @@
 
       <div id="resultContainer"></div>
 
+      <div id="predictionsContainer">
+        <h3>Top Predictions</h3>
+        <ul id="predictionsList" style="margin-top: 10px; padding-left: 20px;"></ul>
+      </div>
+
       <button class="btn" onclick="checkDisease()">
         <i class="fas fa-search"></i> Analyze
       </button>
       <br><br>
-      <button class="btn" style="background:#007bff" onclick="showSection('formSection')">
-        <i class="fas fa-arrow-left"></i> Back
-      </button>
+      <div id="buttonContainer" style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn" style="background:#007bff" onclick="showSection('formSection')">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <div id="thankYouContainer">
+          <button class="btn" style="background:#28a745" onclick="showSection('thankYou')">
+            <i class="fas fa-check-circle"></i> Finish
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -273,7 +291,6 @@
       }
     });
 
-    // helper to convert Base64→Blob
     function dataURLtoBlob(dataURL) {
       const [header, base64] = dataURL.split(',');
       const mime = header.match(/:(.*?);/)[1];
@@ -290,8 +307,14 @@
       }
 
       const resultEl = document.getElementById('resultContainer');
+      const predictionsEl = document.getElementById('predictionsContainer');
+      const thankYouContainersEl = document.getElementById('thankYouContainer');
+      const predictionsList = document.getElementById('predictionsList');
+
       resultEl.style.display = 'block';
       resultEl.innerHTML = `<p>Analyzing… <i class="fas fa-spinner fa-pulse"></i></p>`;
+      predictionsEl.style.display = 'none';
+      predictionsList.innerHTML = '';
 
       const blob = dataURLtoBlob(uploadedImageData);
       const formData = new FormData();
@@ -304,15 +327,22 @@
         });
         const data = await resp.json();
         if (!resp.ok) {
-          // use any error detail from the response
           const errMsg = data.detail || `Server returned ${resp.status}`;
           throw new Error(errMsg);
         }
         resultEl.innerHTML = `
-          <h3>Diagnosis: ${data.disease}</h3>
-          <p>Confidence: ${(data.confidence * 100).toFixed(1)}%</p>
           <p style="color:red;">${data.warning || ''}</p>
         `;
+
+        if (data.top_predictions && Array.isArray(data.top_predictions)) {
+          data.top_predictions.forEach(pred => {
+            const li = document.createElement('li');
+            li.textContent = `${pred.disease} - ${(pred.confidence * 100).toFixed(1)}%`;
+            predictionsList.appendChild(li);
+          });
+          predictionsEl.style.display = 'block';
+          thankYouContainersEl.style.display = 'block';
+        }
       } catch (err) {
         resultEl.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
       }
@@ -350,20 +380,20 @@
     }
 
     document.getElementById('dob').addEventListener('change', function () {
-    const dob = new Date(this.value);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
+      const dob = new Date(this.value);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
 
-    if (!isNaN(age)) {
-      document.getElementById('age').value = age;
-    } else {
-      document.getElementById('age').value = '';
-    }
-  });
+      if (!isNaN(age)) {
+        document.getElementById('age').value = age;
+      } else {
+        document.getElementById('age').value = '';
+      }
+    });
   </script>
 
 </body>

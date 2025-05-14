@@ -2,8 +2,7 @@
 
 This repository contains a FastAPI service for classifying skin disease images using a pretrained PyTorch model. You can run it in two ways:
 
-1. **Local Setup**: Python virtual environment + Uvicorn
-2. **Docker Setup**: Docker container + Docker Compose
+**Local Setup**: Python virtual environment + Uvicorn
 
 ---
 
@@ -11,7 +10,6 @@ This repository contains a FastAPI service for classifying skin disease images u
 
 ```text
 .
-├── Dockerfile          # Builds the FastAPI service
 ├── Dataset/            # Your train/test image folders
 ├── class_idx.json      # Generated class-to-index mapping
 ├── main.py             # FastAPI application (includes index route at "/")
@@ -90,40 +88,6 @@ curl -X POST "http://localhost:8000/predict/" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@/path/to/image.jpg"
 ```
-
----
-
-## 🐳 Docker Setup
-
-### Prerequisites
-
-* Docker Engine
-* Docker Compose
-
-### 1. Build & Start Services
-
-```bash
-docker-compose up --build -d
-```
-
-### 2. Verify
-
-* Home index: [http://localhost:8000/](http://localhost:8000/)
-
-* Prediction: use the same `curl` as above
-
-### 3. Stop & Remove
-
-```bash
-docker-compose down
-```
-
----
-
-## 🔧 Configuration
-
-* **PORT**: Modify in `docker-compose.yml` or `uvicorn` command
-* **Environment Variables**: Export locally or use `environment:` in Compose
 
 ---
 

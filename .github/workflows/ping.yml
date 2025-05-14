@@ -1,0 +1,16 @@
+name: Ping SkinAI
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  curl_job:
+    runs-on: ubuntu-latest
+    steps:
+  - name: Ping Both Services
+    run: |
+      curl -s https://skinai-7wpt.onrender.com/ > /dev/null
+      curl -s https://skin-disease-classifier-iiur.onrender.com/ > /dev/null
+

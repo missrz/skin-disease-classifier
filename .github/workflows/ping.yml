@@ -9,8 +9,7 @@ jobs:
   curl_job:
     runs-on: ubuntu-latest
     steps:
-  - name: Ping Both Services
-    run: |
-      curl -s https://skinai-7wpt.onrender.com/ > /dev/null
-      curl -s https://skin-disease-classifier-iiur.onrender.com/ > /dev/null
-
+      - name: Ping Both Services
+        run: |
+          curl -s https://skinai-7wpt.onrender.com/ > /dev/null
+          curl -s https://skin-disease-classifier-iiur.onrender.com/ > /dev/null
